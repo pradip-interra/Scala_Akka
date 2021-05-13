@@ -2,9 +2,13 @@ package pradip.demo_future_akka_rest
 
 // scala related exports
 
+import pradip.demo_future_akka_rest.RestInvoker.request
+
+import java.lang.RuntimeException
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.postfixOps
+import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
 // akka related exports
@@ -22,7 +26,7 @@ import spray.json.DefaultJsonProtocol._
 
 /**
  * The Rest Tested class
- * We have a simple Node.js + Express server running in http://localhost:3000/api/movies endpoint that
+ * We have a simple Node.js + Express server running in http://localhost:3001/api/movies endpoint that
  * supports POST, GET, PATCH, PUT, DELETE of Movie object consists of Id(int), Name(String) and Genre(String).
  */
 object RestInvoker extends App {
@@ -38,7 +42,6 @@ object RestInvoker extends App {
 
   // Create POST REST Request
   private val movie = Movie(name = "3-idiots", genre = "satire")
-
   val request = HttpRequest(
     method = HttpMethods.POST,
     uri = endPoint,
@@ -59,10 +62,11 @@ object RestInvoker extends App {
   // retrieve the value: Elaborate. Later on we used pretty standard way.
   val responseFuture: Future[HttpResponse] = Http().singleRequest(request)
 //  responseFuture.foreach(println) // the total Futures data structure
-  val resEntityFuture: Future[HttpEntity.Strict] = responseFuture.flatMap(res => res.entity.toStrict(0 seconds))
+  val resEntityFuture: Future[HttpEntity.Strict] = responseFuture.flatMap(res => res.entity.toStrict(5 seconds))
 //  resEntityFuture.foreach(println)
   val actResponse: Future[String] = resEntityFuture.map(entity => entity.data.utf8String)
-//  actResponse.foreach(println)
+  // actResponse.foreach(println)
+
 
   // Sticking the next Future all: GET on the :id of the newly
   actResponse.onComplete ({
